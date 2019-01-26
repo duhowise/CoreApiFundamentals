@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace CoreCodeCamp.Migrations
+namespace CoreCodeCamp.Data.Migrations
 {
     public partial class initialdb : Migration
     {
