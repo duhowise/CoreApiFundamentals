@@ -19,6 +19,14 @@ namespace CoreCodeCamp.Data
                 .ForMember(c=>c.StateProvince,o=>o.MapFrom(m=>m.Location.StateProvince))  
                 .ForMember(c=>c.Talks, o=>o.MapFrom(m=>m.Talks))  
                 .ReverseMap();
+
+            this.CreateMap<Talk, TalkModel>().ReverseMap()
+                .ForMember(t=>t.Camp,opt=>opt.Ignore())
+                .ForMember(t=>t.Speaker,opt=>opt.Ignore());
+
+
+
+            this.CreateMap<Speaker, SpeakerModel>().ReverseMap();
         }
     }
 }
