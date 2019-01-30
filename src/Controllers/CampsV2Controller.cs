@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using CoreCodeCamp.Data;
@@ -10,18 +11,16 @@ using Microsoft.EntityFrameworkCore.Internal;
 
 namespace CoreCodeCamp.Controllers
 {
-    [Route("api/[controller]")]
-    //[Route("api/v{version:apiVersion}/[controller]")]
+    [Route("api/camps")]
     [ApiController]
-    [ApiVersion("1.0")]
-    [ApiVersion("1.1")]
-    public class CampsController : ControllerBase
+    [ApiVersion("2.0")]
+    public class CampsV2Controller : ControllerBase
     {
         private readonly ICampRepository _repository;
         private readonly IMapper _mapper;
         private readonly LinkGenerator _linkGenerator;
 
-        public CampsController(ICampRepository repository, IMapper mapper, LinkGenerator linkGenerator)
+        public CampsV2Controller(ICampRepository repository, IMapper mapper, LinkGenerator linkGenerator)
         {
             _repository = repository;
             _mapper = mapper;
@@ -35,7 +34,12 @@ namespace CoreCodeCamp.Controllers
             {
                 var results = await _repository.GetAllCampsAsync(includeTalks);
 
-                return _mapper.Map<CampModel[]>(results);
+                var result = new
+                {
+                    Count = Enumerable.Count(results),
+                    Results = _mapper.Map<CampModel[]>(results)
+                };
+                return Ok(result);
             }
             catch (Exception e)
             {
@@ -45,7 +49,6 @@ namespace CoreCodeCamp.Controllers
 
 
         [HttpGet("{moniker}")]
-        [MapToApiVersion("1.0")]
         public async Task<ActionResult<CampModel>> Get(string moniker)
         {
             try
@@ -53,41 +56,36 @@ namespace CoreCodeCamp.Controllers
                 var results = await _repository.GetCampAsync(moniker);
                 if (results == null) return NotFound();
 
-                return _mapper.Map<CampModel>(results);
+                var result = new
+                {
+                    Count = 1,
+                    Results = _mapper.Map<CampModel[]>(results)
+                };
+                return Ok(result);
             }
             catch (Exception e)
             {
                 return BadRequest(e);
             }
         }
-        [HttpGet("{moniker}")]
-       [MapToApiVersion("1.1")] public async Task<ActionResult<CampModel>> GetV11(string moniker)
-        {
-            try
-            {
-                var results = await _repository.GetCampAsync(moniker,true);
-                if (results == null) return NotFound();
-
-                return _mapper.Map<CampModel>(results);
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e);
-            }
-        }
-
+       
         [HttpGet("search")]
-        public async Task<ActionResult<CampModel[]>> SearchByDate(DateTime date, bool includeTalks = false)
+        public async Task<ActionResult> SearchByDate(DateTime date, bool includeTalks = false)
         {
             try
             {
                 var results = await _repository.GetAllCampsByEventDate(date, includeTalks);
-                if (!results.Any())
+                if (!EnumerableExtensions.Any(results))
                 {
                     return NotFound();
                 }
 
-                return _mapper.Map<CampModel[]>(results);
+                var result = new
+                {
+                    Count=Enumerable.Count(results),
+                    Results = _mapper.Map<CampModel[]>(results)
+                };
+                return Ok(result);
             }
             catch (Exception e)
             {
